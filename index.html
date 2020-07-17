@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+    *{
+        font-family: Arial, Helvetica, sans-serif;
+    }
+</style>
+<body>
+    <h2>Current Score : <span id="currentScore"></span></h2>
+    <h2>Highest Score : <span id="highestScore"></span></h2>
+    <canvas id="canvas" height="400" width="400"></canvas>
+</body>
+<script>
+    var canvas,ctx;
+    const DEFAULT_TAIL_LENGTH=3;
+    var tailSize=DEFAULT_TAIL_LENGTH;
+    var snakeTrail=[];
+    var snakeX=snakeY=10;
+
+    var gridSize=tileSize=20;
+
+    var appleX=appleY=15;
+    var currentScore_ele=document.getElementById('currentScore');
+    var highestScore_ele=document.getElementById('highestScore');
+    var currentScore=0;
+    var highestScore=localStorage.getItem('snake_score')!=null ? localStorage.getItem('snake_score') : 0;
+    var nextX=0,nextY=0;
+
+    window.onload=function (){
+        canvas=document.getElementById('canvas');
+        ctx=canvas.getContext("2d");
+
+        document.addEventListener("keydown",keyDownEvent);
+
+        var x=8;
+        currentScore_ele.innerHTML=currentScore;
+        highestScore_ele.innerHTML=highestScore;
+        setInterval(draw,1000/x);
+    }
+    
+    function draw(){
+        snakeX+=nextX;
+        snakeY+=nextY;
+
+        if(snakeX<0)    snakeX=gridSize-1;
+        if(snakeY<0)    snakeY=gridSize-1;
+        if(snakeX>gridSize-1)    snakeX=0;
+        if(snakeY>gridSize-1)    snakeY=0;
+
+        if(snakeX==appleX && snakeY==appleY){
+            tailSize++;
+            currentScore++;
+            currentScore_ele.innerHTML=currentScore;
+            appleX=Math.floor(Math.random()*gridSize);
+            appleY=Math.floor(Math.random()*gridSize);
+        }
+
+        ctx.fillStyle="black";
+        ctx.fillRect(0,0,canvas.height,canvas.width);
+
+        ctx.fillStyle="green";
+        for(let i=0;i<snakeTrail.length;i++){
+            ctx.fillRect(snakeTrail[i].x*tileSize,
+                        snakeTrail[i].y*tileSize,
+                        tileSize,
+                        tileSize);
+
+            if(snakeTrail[i].x==snakeX && snakeTrail[i].y==snakeY){
+                if(currentScore > highestScore){
+                    localStorage.setItem('snake_score',currentScore)
+                    highestScore_ele.innerHTML=currentScore;
+                }
+                currentScore=0;
+                currentScore_ele.innerHTML=currentScore;
+                tailSize=DEFAULT_TAIL_LENGTH;
+            }
+        }
+
+        ctx.fillStyle="red";
+        ctx.fillRect(appleX*tileSize,appleY*tileSize,tileSize,tileSize);
+
+        snakeTrail.push({x:snakeX , y:snakeY});
+        while(snakeTrail.length > tailSize){
+            snakeTrail.shift();
+        }
+
+    }
+    function keyDownEvent(e){
+        var temp_x=nextX,temp_y=nextY;
+        switch(e.keyCode){
+            case 37:
+                nextX=-1;
+                nextY=0;
+                break;
+
+            case 38:
+                nextX=0;
+                nextY=-1;
+                break;
+            
+            case 39:
+                nextX=1;
+                nextY=0;
+                break;
+            case 40:
+                nextX=0;
+                nextY=1;
+                break;
+        }
+
+        if( ( temp_x!=0 && temp_x==-(nextX)) || ( temp_y!=0 && temp_y==-(nextY)) ){
+            nextX=temp_x;
+            nextY=temp_y;
+        }
+    }
+</script>
+</html>
